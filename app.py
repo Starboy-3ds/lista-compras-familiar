@@ -4,15 +4,17 @@ import os
 from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = 'tu_clave_secreta_aqui'  # Cambia esto por algo secreto
+app.secret_key = 'mi_clave_secreta_2026'  # Cambia esto por algo secreto
 
-# Configuración de usuarios (puedes agregar más)
+# Configuración de usuarios - ¡Aquí están tus usuarios!
 USUARIOS = {
-    'familia': 'compras2025',  # usuario: contraseña
-    'mama': 'jumbo123',
-    'papa': 'compres456'
+    'Brandon': 'todosjuntos',
+    'Yamibel': 'todosjuntos',
+    'Bienvenido': 'todosjuntos',
+    'Yamila': 'todosjuntos'
 }
 
+# Archivos para guardar los datos
 ARCHIVO_JUMBO = 'lista_jumbo.json'
 ARCHIVO_COMPRES = 'lista_compres.json'
 ARCHIVO_HISTORIAL = 'historial_compras.json'
@@ -66,17 +68,16 @@ def normalizar_texto(texto):
 
 # Cargar listas
 def cargar_listas():
+    listajumbo = []
+    listacompres = []
+    
     if os.path.exists(ARCHIVO_JUMBO):
         with open(ARCHIVO_JUMBO, 'r') as f:
             listajumbo = json.load(f)
-    else:
-        listajumbo = []
     
     if os.path.exists(ARCHIVO_COMPRES):
         with open(ARCHIVO_COMPRES, 'r') as f:
             listacompres = json.load(f)
-    else:
-        listacompres = []
     
     return listajumbo, listacompres
 
@@ -98,6 +99,7 @@ def index():
                          mensaje=session.pop('mensaje', None),
                          usuario=session.get('user'))
 
+# Agregar elementos
 @app.route('/agregar', methods=['POST'])
 @login_required
 def agregar():
@@ -114,15 +116,23 @@ def agregar():
     elif lista == 'compres':
         listacompres.extend(elementos)
         session['mensaje'] = f'✅ Agregados a COMPRES 🟨: {", ".join(elementos)}'
+    else:
+        session['mensaje'] = '❌ Error: No se seleccionó una lista válida'
+        return redirect(url_for('index'))
     
     guardar_listas(listajumbo, listacompres)
     return redirect(url_for('index'))
 
+# Borrar elementos
 @app.route('/borrar', methods=['POST'])
 @login_required
 def borrar():
     lista = request.form.get('lista')
     elemento = request.form.get('elemento')
+    
+    if not elemento:
+        session['mensaje'] = '❌ Debes escribir un elemento para borrar'
+        return redirect(url_for('index'))
     
     listajumbo, listacompres = cargar_listas()
     
@@ -135,6 +145,8 @@ def borrar():
         if encontrado:
             listajumbo.remove(encontrado)
             session['mensaje'] = f'✅ "{encontrado}" borrado de JUMBO 🟥'
+        else:
+            session['mensaje'] = f'❌ "{elemento}" no está en la lista de JUMBO'
     
     elif lista == 'compres':
         encontrado = None
@@ -145,15 +157,25 @@ def borrar():
         if encontrado:
             listacompres.remove(encontrado)
             session['mensaje'] = f'✅ "{encontrado}" borrado de COMPRES 🟨'
+        else:
+            session['mensaje'] = f'❌ "{elemento}" no está en la lista de COMPRES'
+    else:
+        session['mensaje'] = '❌ Error: No se seleccionó una lista válida'
+        return redirect(url_for('index'))
     
     guardar_listas(listajumbo, listacompres)
     return redirect(url_for('index'))
 
+# Marcar como comprados
 @app.route('/comprar', methods=['POST'])
 @login_required
 def comprar():
     lista = request.form.get('lista')
     indices = request.form.getlist('indices')
+    
+    if not indices:
+        session['mensaje'] = '❌ No seleccionaste ningún producto'
+        return redirect(url_for('index'))
     
     listajumbo, listacompres = cargar_listas()
     
@@ -176,10 +198,14 @@ def comprar():
                 listacompres.pop(idx)
         if comprados:
             session['mensaje'] = f'✅ Comprados de COMPRES 🟨: {", ".join(comprados)}'
+    else:
+        session['mensaje'] = '❌ Error: No se seleccionó una lista válida'
+        return redirect(url_for('index'))
     
     guardar_listas(listajumbo, listacompres)
     return redirect(url_for('index'))
 
+# Vaciar lista completa
 @app.route('/vaciar', methods=['POST'])
 @login_required
 def vaciar():
@@ -193,10 +219,13 @@ def vaciar():
     elif lista == 'compres':
         listacompres = []
         session['mensaje'] = '🧹 Lista de COMPRES 🟨 vaciada'
+    else:
+        session['mensaje'] = '❌ Error: No se seleccionó una lista válida'
+        return redirect(url_for('index'))
     
     guardar_listas(listajumbo, listacompres)
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=True)
