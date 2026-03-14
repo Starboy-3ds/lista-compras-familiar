@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Compras Familiar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .mensaje {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .formulario-agregar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .form-group input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .form-group select {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            background: white;
+        }
+        
+        .form-group button {
+            padding: 12px 24px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        .form-group button:hover {
+            background: #0056b3;
+        }
+        
+        .listas-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .lista {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .lista.jumbo {
+            border-top: 5px solid #ff4444;
+        }
+        
+        .lista.compres {
+            border-top: 5px solid #ffbb33;
+        }
+        
+        .lista h2 {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .lista h2 span {
+            background: #e0e0e0;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .lista.jumbo h2 {
+            color: #ff4444;
+        }
+        
+        .lista.compres h2 {
+            color: #ffbb33;
+        }
+        
+        .productos-lista {
+            list-style: none;
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .productos-lista li {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .productos-lista li:hover {
+            background: #f9f9f9;
+        }
+        
+        .productos-lista input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .productos-lista label {
+            flex: 1;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .acciones-lista {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #138496;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        .form-borrar {
+            display: inline-block;
+        }
+        
+        .form-borrar input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 5px;
+        }
+        
+        .vacío {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .listas-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-group {
+                flex-direction: column;
+            }
+            
+            .form-group input,
+            .form-group select,
+            .form-group button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛒 Lista de Compras Familiar</h1>
+        
+        {% if mensaje %}
+        <div class="mensaje">
+            {{ mensaje }}
+        </div>
+        {% endif %}
+        
+        <div class="formulario-agregar">
+            <form action="/agregar" method="POST">
+                <div class="form-group">
+                    <input type="text" name="elementos" placeholder="Ej: leche, pan, huevos, arroz" required>
+                    <select name="lista" required>
+                        <option value="">Seleccionar lista...</option>
+                        <option value="jumbo">🟥 JUMBO</option>
+                        <option value="compres">🟨 COMPRES</option>
+                    </select>
+                    <button type="submit">➕ Agregar</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="listas-container">
+            <div class="lista jumbo">
+                <h2>
+                    🟥 JUMBO
+                    <span>{{ listajumbo|length }} artículos</span>
+                </h2>
+                
+                {% if listajumbo %}
+                <form action="/comprar" method="POST" id="form-jumbo">
+                    <input type="hidden" name="lista" value="jumbo">
+                    <ul class="productos-lista">
+                        {% for item in listajumbo|sort %}
+                        <li>
+                            <input type="checkbox" name="indices" value="{{ loop.index0 }}" id="jumbo-{{ loop.index0 }}">
+                            <label for="jumbo-{{ loop.index0 }}">{{ item }}</label>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <div class="acciones-lista">
+                        <button type="submit" class="btn btn-primary">✅ Marcar seleccionados</button>
+                    </div>
+                </form>
+                
+                <div class="acciones-lista">
+                    <form action="/vaciar" method="POST" style="display: inline;">
+                        <input type="hidden" name="lista" value="jumbo">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Vaciar toda la lista de JUMBO?')">🗑️ Vaciar lista</button>
+                    </form>
+                    
+                    <form action="/borrar" method="POST" class="form-borrar">
+                        <input type="hidden" name="lista" value="jumbo">
+                        <input type="text" name="elemento" placeholder="Borrar específico..." required>
+                        <button type="submit" class="btn btn-warning btn-sm">Borrar</button>
+                    </form>
+                </div>
+                {% else %}
+                <p class="vacío">La lista está vacía</p>
+                {% endif %}
+            </div>
+            
+            <div class="lista compres">
+                <h2>
+                    🟨 COMPRES
+                    <span>{{ listacompres|length }} artículos</span>
+                </h2>
+                
+                {% if listacompres %}
+                <form action="/comprar" method="POST" id="form-compres">
+                    <input type="hidden" name="lista" value="compres">
+                    <ul class="productos-lista">
+                        {% for item in listacompres|sort %}
+                        <li>
+                            <input type="checkbox" name="indices" value="{{ loop.index0 }}" id="compres-{{ loop.index0 }}">
+                            <label for="compres-{{ loop.index0 }}">{{ item }}</label>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <div class="acciones-lista">
+                        <button type="submit" class="btn btn-primary">✅ Marcar seleccionados</button>
+                    </div>
+                </form>
+                
+                <div class="acciones-lista">
+                    <form action="/vaciar" method="POST" style="display: inline;">
+                        <input type="hidden" name="lista" value="compres">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Vaciar toda la lista de COMPRES?')">🗑️ Vaciar lista</button>
+                    </form>
+                    
+                    <form action="/borrar" method="POST" class="form-borrar">
+                        <input type="hidden" name="lista" value="compres">
+                        <input type="text" name="elemento" placeholder="Borrar específico..." required>
+                        <button type="submit" class="btn btn-warning btn-sm">Borrar</button>
+                    </form>
+                </div>
+                {% else %}
+                <p class="vacío">La lista está vacía</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
