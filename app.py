@@ -1,13 +1,54 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import json
 import os
+from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = 'tu_clave_secreta_aqui'
+app.secret_key = 'tu_clave_secreta_aqui'  # Cambia esto por algo secreto
+
+# Configuración de usuarios (puedes agregar más)
+USUARIOS = {
+    'familia': 'compras2025',  # usuario: contraseña
+    'mama': 'jumbo123',
+    'papa': 'compres456'
+}
 
 ARCHIVO_JUMBO = 'lista_jumbo.json'
 ARCHIVO_COMPRES = 'lista_compres.json'
+ARCHIVO_HISTORIAL = 'historial_compras.json'
 
+# Decorador para requerir login
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Página de login
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if username in USUARIOS and USUARIOS[username] == password:
+            session['user'] = username
+            return redirect(url_for('index'))
+        else:
+            error = 'Usuario o contraseña incorrectos'
+    
+    return render_template('login.html', error=error)
+
+# Logout
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    return redirect(url_for('login'))
+
+# Funciones de formato
 def capitalizar_texto(texto):
     if not texto:
         return texto
@@ -23,6 +64,7 @@ def capitalizar_texto(texto):
 def normalizar_texto(texto):
     return texto.lower().strip()
 
+# Cargar listas
 def cargar_listas():
     if os.path.exists(ARCHIVO_JUMBO):
         with open(ARCHIVO_JUMBO, 'r') as f:
@@ -38,21 +80,26 @@ def cargar_listas():
     
     return listajumbo, listacompres
 
+# Guardar listas
 def guardar_listas(listajumbo, listacompres):
     with open(ARCHIVO_JUMBO, 'w') as f:
         json.dump(listajumbo, f, indent=2)
     with open(ARCHIVO_COMPRES, 'w') as f:
         json.dump(listacompres, f, indent=2)
 
+# Página principal (protegida)
 @app.route('/')
+@login_required
 def index():
     listajumbo, listacompres = cargar_listas()
     return render_template('index.html', 
                          listajumbo=listajumbo, 
                          listacompres=listacompres,
-                         mensaje=session.pop('mensaje', None))
+                         mensaje=session.pop('mensaje', None),
+                         usuario=session.get('user'))
 
 @app.route('/agregar', methods=['POST'])
+@login_required
 def agregar():
     lista = request.form.get('lista')
     elementos_texto = request.form.get('elementos')
@@ -72,6 +119,7 @@ def agregar():
     return redirect(url_for('index'))
 
 @app.route('/borrar', methods=['POST'])
+@login_required
 def borrar():
     lista = request.form.get('lista')
     elemento = request.form.get('elemento')
@@ -102,6 +150,7 @@ def borrar():
     return redirect(url_for('index'))
 
 @app.route('/comprar', methods=['POST'])
+@login_required
 def comprar():
     lista = request.form.get('lista')
     indices = request.form.getlist('indices')
@@ -132,6 +181,7 @@ def comprar():
     return redirect(url_for('index'))
 
 @app.route('/vaciar', methods=['POST'])
+@login_required
 def vaciar():
     lista = request.form.get('lista')
     
