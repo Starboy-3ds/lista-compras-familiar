@@ -5,6 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Compras Familiar</title>
     <style>
+        /* Variables de color para modo claro y oscuro */
+        :root {
+            --bg-color: #f5f5f5;
+            --text-color: #333;
+            --card-bg: white;
+            --border-color: #ddd;
+            --input-bg: white;
+            --shadow: rgba(0,0,0,0.1);
+            --mensaje-bg: #d4edda;
+            --mensaje-color: #155724;
+            --jumbo-color: #ff4444;
+            --compres-color: #ffbb33;
+            --btn-primary: #007bff;
+            --btn-primary-hover: #0056b3;
+            --btn-danger: #dc3545;
+            --btn-danger-hover: #c82333;
+            --btn-warning: #ffc107;
+            --btn-warning-hover: #e0a800;
+            --vacio-color: #999;
+        }
+
+        /* Modo oscuro automático (detecta preferencia del sistema) */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1a1a1a;
+                --text-color: #e0e0e0;
+                --card-bg: #2d2d2d;
+                --border-color: #404040;
+                --input-bg: #3d3d3d;
+                --shadow: rgba(0,0,0,0.3);
+                --mensaje-bg: #1e3a2a;
+                --mensaje-color: #8bc34a;
+                --jumbo-color: #ff6b6b;
+                --compres-color: #ffd966;
+                --btn-primary: #0056b3;
+                --btn-primary-hover: #003d80;
+                --btn-danger: #a71d2a;
+                --btn-danger-hover: #7a141e;
+                --btn-warning: #b38600;
+                --btn-warning-hover: #8f6b00;
+                --vacio-color: #666;
+            }
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,8 +57,10 @@
         }
         
         body {
-            background: #f5f5f5;
+            background: var(--bg-color);
+            color: var(--text-color);
             padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
         }
         
         .container {
@@ -24,14 +70,13 @@
         
         h1 {
             text-align: center;
-            color: #333;
             margin-bottom: 30px;
             font-size: 2.5em;
         }
         
         .mensaje {
-            background: #d4edda;
-            color: #155724;
+            background: var(--mensaje-bg);
+            color: var(--mensaje-color);
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -40,11 +85,11 @@
         }
         
         .formulario-agregar {
-            background: white;
+            background: var(--card-bg);
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 30px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px var(--shadow);
         }
         
         .form-group {
@@ -56,22 +101,35 @@
         .form-group input {
             flex: 1;
             padding: 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 5px;
             font-size: 16px;
+            background: var(--input-bg);
+            color: var(--text-color);
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--btn-primary);
         }
         
         .form-group select {
             padding: 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 5px;
             font-size: 16px;
-            background: white;
+            background: var(--input-bg);
+            color: var(--text-color);
+        }
+        
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--btn-primary);
         }
         
         .form-group button {
             padding: 12px 24px;
-            background: #007bff;
+            background: var(--btn-primary);
             color: white;
             border: none;
             border-radius: 5px;
@@ -82,7 +140,7 @@
         }
         
         .form-group button:hover {
-            background: #0056b3;
+            background: var(--btn-primary-hover);
         }
         
         .listas-container {
@@ -92,18 +150,18 @@
         }
         
         .lista {
-            background: white;
+            background: var(--card-bg);
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px var(--shadow);
         }
         
         .lista.jumbo {
-            border-top: 5px solid #ff4444;
+            border-top: 5px solid var(--jumbo-color);
         }
         
         .lista.compres {
-            border-top: 5px solid #ffbb33;
+            border-top: 5px solid var(--compres-color);
         }
         
         .lista h2 {
@@ -114,18 +172,18 @@
         }
         
         .lista h2 span {
-            background: #e0e0e0;
+            background: var(--border-color);
             padding: 5px 10px;
             border-radius: 20px;
             font-size: 14px;
         }
         
         .lista.jumbo h2 {
-            color: #ff4444;
+            color: var(--jumbo-color);
         }
         
         .lista.compres h2 {
-            color: #ffbb33;
+            color: var(--compres-color);
         }
         
         .productos-lista {
@@ -137,20 +195,21 @@
         
         .productos-lista li {
             padding: 10px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
         .productos-lista li:hover {
-            background: #f9f9f9;
+            background: rgba(128, 128, 128, 0.1);
         }
         
         .productos-lista input[type="checkbox"] {
             width: 18px;
             height: 18px;
             cursor: pointer;
+            accent-color: var(--btn-primary);
         }
         
         .productos-lista label {
@@ -179,39 +238,30 @@
         }
         
         .btn-primary {
-            background: #007bff;
+            background: var(--btn-primary);
             color: white;
         }
         
         .btn-primary:hover {
-            background: #0056b3;
+            background: var(--btn-primary-hover);
         }
         
         .btn-danger {
-            background: #dc3545;
+            background: var(--btn-danger);
             color: white;
         }
         
         .btn-danger:hover {
-            background: #c82333;
+            background: var(--btn-danger-hover);
         }
         
         .btn-warning {
-            background: #ffc107;
+            background: var(--btn-warning);
             color: #333;
         }
         
         .btn-warning:hover {
-            background: #e0a800;
-        }
-        
-        .btn-info {
-            background: #17a2b8;
-            color: white;
-        }
-        
-        .btn-info:hover {
-            background: #138496;
+            background: var(--btn-warning-hover);
         }
         
         .btn-sm {
@@ -225,16 +275,43 @@
         
         .form-borrar input {
             padding: 8px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 5px;
             margin-right: 5px;
+            background: var(--input-bg);
+            color: var(--text-color);
+        }
+        
+        .form-borrar input:focus {
+            outline: none;
+            border-color: var(--btn-warning);
         }
         
         .vacío {
             text-align: center;
-            color: #999;
+            color: var(--vacio-color);
             padding: 20px;
             font-style: italic;
+        }
+        
+        /* Botón flotante para cambiar modo manualmente (opcional) */
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-color);
+            box-shadow: 0 2px 10px var(--shadow);
+            z-index: 1000;
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.05);
         }
         
         @media (max-width: 768px) {
@@ -360,5 +437,21 @@
             </div>
         </div>
     </div>
+
+    <!-- Botón opcional para cambiar modo manualmente -->
+    <button class="theme-toggle" onclick="toggleTheme()">🌓 Cambiar tema</button>
+
+    <script>
+        // Función para cambiar tema manualmente (opcional)
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            if (currentTheme === 'dark') {
+                html.removeAttribute('data-theme');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+            }
+        }
+    </script>
 </body>
 </html>
