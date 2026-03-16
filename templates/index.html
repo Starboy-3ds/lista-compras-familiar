@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Compras Familiar</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <style>
         /* Variables de color para modo claro y oscuro */
         :root {
@@ -61,11 +62,14 @@
             color: var(--text-color);
             padding: 20px;
             transition: background-color 0.3s, color 0.3s;
+            position: relative;
+            min-height: 100vh;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding-top: 20px;
         }
         
         h1 {
@@ -293,6 +297,30 @@
             padding: 20px;
             font-style: italic;
         }
+
+        /* Botón de cerrar sesión */
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .logout-btn a {
+            display: inline-block;
+            padding: 8px 16px;
+            background: var(--btn-danger);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .logout-btn a:hover {
+            background: var(--btn-danger-hover);
+        }
         
         @media (max-width: 768px) {
             .listas-container {
@@ -308,10 +336,25 @@
             .form-group button {
                 width: 100%;
             }
+            
+            .logout-btn {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .logout-btn a {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Botón de cerrar sesión en la parte superior -->
+    <div class="logout-btn">
+        <a href="/logout">🚪 Cerrar sesión</a>
+    </div>
+
     <div class="container">
         <h1>🛒 Lista de Compras Familiar</h1>
         
@@ -417,78 +460,5 @@
             </div>
         </div>
     </div>
-
-    <!-- Botones para cambiar tema manualmente -->
-    <div style="position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; z-index: 1000;">
-        <button onclick="setTheme('light')" style="padding: 10px 15px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); cursor: pointer;">☀️ Claro</button>
-        <button onclick="setTheme('dark')" style="padding: 10px 15px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); cursor: pointer;">🌙 Oscuro</button>
-        <button onclick="setTheme('auto')" style="padding: 10px 15px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); cursor: pointer;">🔄 Auto</button>
-    </div>
-
-    <!-- Botón de cerrar sesión -->
-    <div style="position: fixed; bottom: 20px; left: 20px; z-index: 1000;">
-        <a href="/logout" style="display: inline-block; padding: 10px 20px; background: var(--btn-danger); color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">🚪 Cerrar sesión</a>
-    </div>
-
-    <script>
-    function setTheme(theme) {
-        const root = document.documentElement;
-        
-        if (theme === 'light') {
-            // Forzar modo claro
-            root.style.setProperty('--bg-color', '#f5f5f5');
-            root.style.setProperty('--text-color', '#333');
-            root.style.setProperty('--card-bg', 'white');
-            root.style.setProperty('--border-color', '#ddd');
-            root.style.setProperty('--input-bg', 'white');
-            root.style.setProperty('--mensaje-bg', '#d4edda');
-            root.style.setProperty('--mensaje-color', '#155724');
-            root.style.setProperty('--vacio-color', '#999');
-            root.style.setProperty('--shadow', 'rgba(0,0,0,0.1)');
-            root.style.setProperty('--btn-primary', '#007bff');
-            root.style.setProperty('--btn-primary-hover', '#0056b3');
-            root.style.setProperty('--btn-danger', '#dc3545');
-            root.style.setProperty('--btn-danger-hover', '#c82333');
-            root.style.setProperty('--btn-warning', '#ffc107');
-            root.style.setProperty('--btn-warning-hover', '#e0a800');
-            // Guardar preferencia
-            localStorage.setItem('theme', 'light');
-        } 
-        else if (theme === 'dark') {
-            // Forzar modo oscuro
-            root.style.setProperty('--bg-color', '#1a1a1a');
-            root.style.setProperty('--text-color', '#e0e0e0');
-            root.style.setProperty('--card-bg', '#2d2d2d');
-            root.style.setProperty('--border-color', '#404040');
-            root.style.setProperty('--input-bg', '#3d3d3d');
-            root.style.setProperty('--mensaje-bg', '#1e3a2a');
-            root.style.setProperty('--mensaje-color', '#8bc34a');
-            root.style.setProperty('--vacio-color', '#666');
-            root.style.setProperty('--shadow', 'rgba(0,0,0,0.3)');
-            root.style.setProperty('--btn-primary', '#0056b3');
-            root.style.setProperty('--btn-primary-hover', '#003d80');
-            root.style.setProperty('--btn-danger', '#a71d2a');
-            root.style.setProperty('--btn-danger-hover', '#7a141e');
-            root.style.setProperty('--btn-warning', '#b38600');
-            root.style.setProperty('--btn-warning-hover', '#8f6b00');
-            // Guardar preferencia
-            localStorage.setItem('theme', 'dark');
-        } 
-        else {
-            // Modo automático (sigue al sistema)
-            localStorage.removeItem('theme');
-            // Recargar para que vuelva a aplicar las media queries
-            location.reload();
-        }
-    }
-
-    // Al cargar la página, verificar si hay una preferencia guardada
-    window.onload = function() {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) {
-            setTheme(savedTheme);
-        }
-    };
-    </script>
 </body>
 </html>
