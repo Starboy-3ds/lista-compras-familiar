@@ -6,7 +6,6 @@
     <title>Lista de Compras Familiar</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <style>
-        /* Variables de color para modo claro y oscuro */
         :root {
             --bg-color: #f5f5f5;
             --text-color: #333;
@@ -27,7 +26,6 @@
             --vacio-color: #999;
         }
 
-        /* Modo oscuro automático (detecta preferencia del sistema) */
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg-color: #1a1a1a;
@@ -88,65 +86,6 @@
             font-weight: bold;
         }
         
-        .formulario-agregar {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 5px var(--shadow);
-        }
-        
-        .form-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .form-group input {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            font-size: 16px;
-            background: var(--input-bg);
-            color: var(--text-color);
-        }
-        
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--btn-primary);
-        }
-        
-        .form-group select {
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            font-size: 16px;
-            background: var(--input-bg);
-            color: var(--text-color);
-        }
-        
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--btn-primary);
-        }
-        
-        .form-group button {
-            padding: 12px 24px;
-            background: var(--btn-primary);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-        
-        .form-group button:hover {
-            background: var(--btn-primary-hover);
-        }
-        
         .listas-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -188,6 +127,44 @@
         
         .lista.compres h2 {
             color: var(--compres-color);
+        }
+        
+        /* Formulario de agregar dentro de cada lista */
+        .agregar-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .agregar-form input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 16px;
+            background: var(--input-bg);
+            color: var(--text-color);
+        }
+        
+        .agregar-form input:focus {
+            outline: none;
+            border-color: var(--btn-primary);
+        }
+        
+        .agregar-form button {
+            padding: 10px 20px;
+            background: var(--btn-primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        .agregar-form button:hover {
+            background: var(--btn-primary-hover);
         }
         
         .productos-lista {
@@ -298,7 +275,6 @@
             font-style: italic;
         }
 
-        /* Botón de cerrar sesión */
         .logout-btn {
             position: absolute;
             top: 20px;
@@ -327,16 +303,6 @@
                 grid-template-columns: 1fr;
             }
             
-            .form-group {
-                flex-direction: column;
-            }
-            
-            .form-group input,
-            .form-group select,
-            .form-group button {
-                width: 100%;
-            }
-            
             .logout-btn {
                 top: 10px;
                 right: 10px;
@@ -346,11 +312,18 @@
                 padding: 6px 12px;
                 font-size: 12px;
             }
+            
+            .agregar-form {
+                flex-direction: column;
+            }
+            
+            .agregar-form button {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Botón de cerrar sesión en la parte superior -->
     <div class="logout-btn">
         <a href="/logout">🚪 Cerrar sesión</a>
     </div>
@@ -364,26 +337,19 @@
         </div>
         {% endif %}
         
-        <div class="formulario-agregar">
-            <form action="/agregar" method="POST">
-                <div class="form-group">
-                    <input type="text" name="elementos" placeholder="Ej: leche, pan, huevos, arroz" required>
-                    <select name="lista" required>
-                        <option value="">Seleccionar lista...</option>
-                        <option value="jumbo">🟥 JUMBO</option>
-                        <option value="compres">🟨 COMPRES</option>
-                    </select>
-                    <button type="submit">➕ Agregar</button>
-                </div>
-            </form>
-        </div>
-        
         <div class="listas-container">
+            <!-- Lista JUMBO -->
             <div class="lista jumbo">
                 <h2>
                     🟥 JUMBO
                     <span>{{ listajumbo|length }} artículos</span>
                 </h2>
+                
+                <!-- Formulario para agregar a JUMBO (1 palabra a la vez) -->
+                <form action="/agregar_jumbo" method="POST" class="agregar-form">
+                    <input type="text" name="elemento" placeholder="Ej: Leche" required autocomplete="off">
+                    <button type="submit">➕ Agregar</button>
+                </form>
                 
                 {% if listajumbo %}
                 <form action="/comprar" method="POST" id="form-jumbo">
@@ -419,11 +385,18 @@
                 {% endif %}
             </div>
             
+            <!-- Lista COMPRES -->
             <div class="lista compres">
                 <h2>
                     🟨 COMPRES
                     <span>{{ listacompres|length }} artículos</span>
                 </h2>
+                
+                <!-- Formulario para agregar a COMPRES (1 palabra a la vez) -->
+                <form action="/agregar_compres" method="POST" class="agregar-form">
+                    <input type="text" name="elemento" placeholder="Ej: Refresco" required autocomplete="off">
+                    <button type="submit">➕ Agregar</button>
+                </form>
                 
                 {% if listacompres %}
                 <form action="/comprar" method="POST" id="form-compres">

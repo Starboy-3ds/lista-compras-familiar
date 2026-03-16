@@ -4,9 +4,9 @@ import os
 from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = 'mi_clave_secreta_2026'  # Cambia esto por algo secreto
+app.secret_key = 'mi_clave_secreta_2026'
 
-# Configuración de usuarios - ¡Aquí están tus usuarios!
+# Configuración de usuarios
 USUARIOS = {
     'Brandon': 'todosjuntos',
     'Yamibel': 'todosjuntos',
@@ -99,29 +99,33 @@ def index():
                          mensaje=session.pop('mensaje', None),
                          usuario=session.get('user'))
 
-# Agregar elementos
-@app.route('/agregar', methods=['POST'])
+# ===== NUEVAS RUTAS PARA AGREGAR (1 elemento a la vez) =====
+
+@app.route('/agregar_jumbo', methods=['POST'])
 @login_required
-def agregar():
-    lista = request.form.get('lista')
-    elementos_texto = request.form.get('elementos')
-    
-    elementos = [capitalizar_texto(e.strip()) for e in elementos_texto.split(',') if e.strip()]
-    
-    listajumbo, listacompres = cargar_listas()
-    
-    if lista == 'jumbo':
-        listajumbo.extend(elementos)
-        session['mensaje'] = f'✅ Agregados a JUMBO 🟥: {", ".join(elementos)}'
-    elif lista == 'compres':
-        listacompres.extend(elementos)
-        session['mensaje'] = f'✅ Agregados a COMPRES 🟨: {", ".join(elementos)}'
-    else:
-        session['mensaje'] = '❌ Error: No se seleccionó una lista válida'
-        return redirect(url_for('index'))
-    
-    guardar_listas(listajumbo, listacompres)
+def agregar_jumbo():
+    elemento = request.form.get('elemento')
+    if elemento:
+        elemento = capitalizar_texto(elemento.strip())
+        listajumbo, listacompres = cargar_listas()
+        listajumbo.append(elemento)
+        guardar_listas(listajumbo, listacompres)
+        session['mensaje'] = f'✅ Agregado a JUMBO 🟥: {elemento}'
     return redirect(url_for('index'))
+
+@app.route('/agregar_compres', methods=['POST'])
+@login_required
+def agregar_compres():
+    elemento = request.form.get('elemento')
+    if elemento:
+        elemento = capitalizar_texto(elemento.strip())
+        listajumbo, listacompres = cargar_listas()
+        listacompres.append(elemento)
+        guardar_listas(listajumbo, listacompres)
+        session['mensaje'] = f'✅ Agregado a COMPRES 🟨: {elemento}'
+    return redirect(url_for('index'))
+
+# ===== RUTAS EXISTENTES MODIFICADAS =====
 
 # Borrar elementos
 @app.route('/borrar', methods=['POST'])
