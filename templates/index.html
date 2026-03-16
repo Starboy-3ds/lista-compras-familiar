@@ -190,7 +190,7 @@
             width: 18px;
             height: 18px;
             cursor: pointer;
-            accent-color: var(--btn-primary);
+            accent-color: var(--btn-danger);
         }
         
         .productos-lista label {
@@ -236,36 +236,9 @@
             background: var(--btn-danger-hover);
         }
         
-        .btn-warning {
-            background: var(--btn-warning);
-            color: #333;
-        }
-        
-        .btn-warning:hover {
-            background: var(--btn-warning-hover);
-        }
-        
         .btn-sm {
             padding: 5px 10px;
             font-size: 12px;
-        }
-        
-        .form-borrar {
-            display: inline-block;
-        }
-        
-        .form-borrar input {
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            margin-right: 5px;
-            background: var(--input-bg);
-            color: var(--text-color);
-        }
-        
-        .form-borrar input:focus {
-            outline: none;
-            border-color: var(--btn-warning);
         }
         
         .vacío {
@@ -345,7 +318,7 @@
                     <span>{{ listajumbo|length }} artículos</span>
                 </h2>
                 
-                <!-- Formulario para agregar a JUMBO (1 palabra a la vez) -->
+                <!-- Formulario para agregar a JUMBO -->
                 <form action="/agregar_jumbo" method="POST" class="agregar-form">
                     <input type="text" name="elemento" placeholder="Ej: Leche" required autocomplete="off">
                     <button type="submit">➕ Agregar</button>
@@ -364,7 +337,7 @@
                     </ul>
                     
                     <div class="acciones-lista">
-                        <button type="submit" class="btn btn-primary">✅ Marcar seleccionados</button>
+                        <button type="submit" class="btn btn-danger">🗑️ Borrar seleccionados</button>
                     </div>
                 </form>
                 
@@ -372,12 +345,6 @@
                     <form action="/vaciar" method="POST" style="display: inline;">
                         <input type="hidden" name="lista" value="jumbo">
                         <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Vaciar toda la lista de JUMBO?')">🗑️ Vaciar lista</button>
-                    </form>
-                    
-                    <form action="/borrar" method="POST" class="form-borrar">
-                        <input type="hidden" name="lista" value="jumbo">
-                        <input type="text" name="elemento" placeholder="Borrar específico..." required>
-                        <button type="submit" class="btn btn-warning btn-sm">Borrar</button>
                     </form>
                 </div>
                 {% else %}
@@ -392,7 +359,7 @@
                     <span>{{ listacompres|length }} artículos</span>
                 </h2>
                 
-                <!-- Formulario para agregar a COMPRES (1 palabra a la vez) -->
+                <!-- Formulario para agregar a COMPRES -->
                 <form action="/agregar_compres" method="POST" class="agregar-form">
                     <input type="text" name="elemento" placeholder="Ej: Refresco" required autocomplete="off">
                     <button type="submit">➕ Agregar</button>
@@ -411,7 +378,7 @@
                     </ul>
                     
                     <div class="acciones-lista">
-                        <button type="submit" class="btn btn-primary">✅ Marcar seleccionados</button>
+                        <button type="submit" class="btn btn-danger">🗑️ Borrar seleccionados</button>
                     </div>
                 </form>
                 
@@ -419,12 +386,6 @@
                     <form action="/vaciar" method="POST" style="display: inline;">
                         <input type="hidden" name="lista" value="compres">
                         <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Vaciar toda la lista de COMPRES?')">🗑️ Vaciar lista</button>
-                    </form>
-                    
-                    <form action="/borrar" method="POST" class="form-borrar">
-                        <input type="hidden" name="lista" value="compres">
-                        <input type="text" name="elemento" placeholder="Borrar específico..." required>
-                        <button type="submit" class="btn btn-warning btn-sm">Borrar</button>
                     </form>
                 </div>
                 {% else %}
