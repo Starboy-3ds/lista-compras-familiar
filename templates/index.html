@@ -319,8 +319,8 @@
                 </h2>
                 
                 <!-- Formulario para agregar a JUMBO -->
-                <form action="/agregar_jumbo" method="POST" class="agregar-form">
-                    <input type="text" name="elemento" placeholder="Ej: Leche" required autocomplete="off">
+                <form action="/agregar_jumbo" method="POST" class="agregar-form" id="form-jumbo-agregar">
+                    <input type="text" name="elemento" placeholder="Ej: Leche" required autocomplete="off" id="campo-jumbo">
                     <button type="submit">➕ Agregar</button>
                 </form>
                 
@@ -360,8 +360,8 @@
                 </h2>
                 
                 <!-- Formulario para agregar a COMPRES -->
-                <form action="/agregar_compres" method="POST" class="agregar-form">
-                    <input type="text" name="elemento" placeholder="Ej: Refresco" required autocomplete="off">
+                <form action="/agregar_compres" method="POST" class="agregar-form" id="form-compres-agregar">
+                    <input type="text" name="elemento" placeholder="Ej: Refresco" required autocomplete="off" id="campo-compres">
                     <button type="submit">➕ Agregar</button>
                 </form>
                 
@@ -394,5 +394,60 @@
             </div>
         </div>
     </div>
+
+    <!-- Script para auto-enfoque -->
+    <script>
+        // Función para enfocar el campo después de agregar
+        function enfocarCampo(selector) {
+            setTimeout(function() {
+                const campo = document.querySelector(selector);
+                if (campo) {
+                    campo.focus();
+                    // Opcional: seleccionar todo el texto para escribir encima
+                    // campo.select();
+                }
+            }, 100); // Pequeño retraso para asegurar que la página cargó
+        }
+
+        // Detectar qué formulario se usó
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si hay un mensaje que indique qué lista se usó
+            const mensaje = document.querySelector('.mensaje');
+            if (mensaje) {
+                if (mensaje.textContent.includes('JUMBO')) {
+                    enfocarCampo('#campo-jumbo');
+                } else if (mensaje.textContent.includes('COMPRES')) {
+                    enfocarCampo('#campo-compres');
+                } else {
+                    // Por defecto, enfocar JUMBO (más común)
+                    enfocarCampo('#campo-jumbo');
+                }
+            } else {
+                // Si no hay mensaje, enfocar JUMBO por defecto
+                enfocarCampo('#campo-jumbo');
+            }
+        });
+
+        // Guardar qué campo se estaba usando antes de enviar el formulario
+        document.getElementById('form-jumbo-agregar')?.addEventListener('submit', function() {
+            localStorage.setItem('ultimaLista', 'jumbo');
+        });
+
+        document.getElementById('form-compres-agregar')?.addEventListener('submit', function() {
+            localStorage.setItem('ultimaLista', 'compres');
+        });
+
+        // Si venimos de una recarga, enfocar la última lista usada
+        window.addEventListener('load', function() {
+            const ultimaLista = localStorage.getItem('ultimaLista');
+            if (ultimaLista === 'jumbo') {
+                enfocarCampo('#campo-jumbo');
+            } else if (ultimaLista === 'compres') {
+                enfocarCampo('#campo-compres');
+            }
+            // Limpiar para la próxima vez
+            localStorage.removeItem('ultimaLista');
+        });
+    </script>
 </body>
 </html>
