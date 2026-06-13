@@ -1,10 +1,20 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-import json
 import os
 from functools import wraps
+import requests
 
 app = Flask(__name__)
 app.secret_key = 'mi_clave_secreta_2026'
+
+# Configuración Supabase
+SUPABASE_URL = 'https://bmhqtkrcvofiqlzkyvxp.supabase.co'
+SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtaHF0a3Jjdm9maXFsemt5dnhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNjg3OTEsImV4cCI6MjA5Njk0NDc5MX0.m1W-ICY-iBECVTpvJ_Clcgk9dltKhsb3ModTpW1fm68'
+
+HEADERS = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': f'Bearer {SUPABASE_KEY}',
+    'Content-Type': 'application/json'
+}
 
 # Configuración de usuarios
 USUARIOS = {
@@ -14,12 +24,6 @@ USUARIOS = {
     'Yamila': 'todosjuntos'
 }
 
-# Archivos para guardar los datos
-ARCHIVO_JUMBO = 'lista_jumbo.json'
-ARCHIVO_COMPRES = 'lista_compres.json'
-ARCHIVO_HISTORIAL = 'historial_compras.json'
-
-# Decorador para requerir login
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -28,29 +32,6 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Página de login
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    error = None
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        if username in USUARIOS and USUARIOS[username] == password:
-            session['user'] = username
-            return redirect(url_for('index'))
-        else:
-            error = 'Usuario o contraseña incorrectos'
-    
-    return render_template('login.html', error=error)
-
-# Logout
-@app.route('/logout')
-def logout():
-    session.pop('user', None)
-    return redirect(url_for('login'))
-
-# Funciones de formato
 def capitalizar_texto(texto):
     if not texto:
         return texto
@@ -66,40 +47,41 @@ def capitalizar_texto(texto):
 def normalizar_texto(texto):
     return texto.lower().strip()
 
-# Cargar listas
+# Cargar listas desde Supabase
 def cargar_listas():
-    listajumbo = []
-    listacompres = []
-    
-    if os.path.exists(ARCHIVO_JUMBO):
-        with open(ARCHIVO_JUMBO, 'r') as f:
-            listajumbo = json.load(f)
-    
-    if os.path.exists(ARCHIVO_COMPRES):
-        with open(ARCHIVO_COMPRES, 'r') as f:
-            listacompres = json.load(f)
-    
+    r_jumbo = requests.get(f'{SUPABASE_URL}/rest/v1/jumbo?select=id,producto', headers=HEADERS)
+    r_compres = requests.get(f'{SUPABASE_URL}/rest/v1/compres?select=id,producto', headers=HEADERS)
+    listajumbo = r_jumbo.json() if r_jumbo.status_code == 200 else []
+    listacompres = r_compres.json() if r_compres.status_code == 200 else []
     return listajumbo, listacompres
 
-# Guardar listas
-def guardar_listas(listajumbo, listacompres):
-    with open(ARCHIVO_JUMBO, 'w') as f:
-        json.dump(listajumbo, f, indent=2)
-    with open(ARCHIVO_COMPRES, 'w') as f:
-        json.dump(listacompres, f, indent=2)
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username in USUARIOS and USUARIOS[username] == password:
+            session['user'] = username
+            return redirect(url_for('index'))
+        else:
+            error = 'Usuario o contraseña incorrectos'
+    return render_template('login.html', error=error)
 
-# Página principal (protegida)
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    return redirect(url_for('login'))
+
 @app.route('/')
 @login_required
 def index():
     listajumbo, listacompres = cargar_listas()
-    return render_template('index.html', 
-                         listajumbo=listajumbo, 
+    return render_template('index.html',
+                         listajumbo=listajumbo,
                          listacompres=listacompres,
                          mensaje=session.pop('mensaje', None),
                          usuario=session.get('user'))
-
-# ===== NUEVAS RUTAS PARA AGREGAR (1 elemento a la vez) =====
 
 @app.route('/agregar_jumbo', methods=['POST'])
 @login_required
@@ -107,9 +89,7 @@ def agregar_jumbo():
     elemento = request.form.get('elemento')
     if elemento:
         elemento = capitalizar_texto(elemento.strip())
-        listajumbo, listacompres = cargar_listas()
-        listajumbo.append(elemento)
-        guardar_listas(listajumbo, listacompres)
+        requests.post(f'{SUPABASE_URL}/rest/v1/jumbo', headers=HEADERS, json={'producto': elemento})
         session['mensaje'] = f'✅ Agregado a JUMBO 🟥: {elemento}'
     return redirect(url_for('index'))
 
@@ -119,115 +99,78 @@ def agregar_compres():
     elemento = request.form.get('elemento')
     if elemento:
         elemento = capitalizar_texto(elemento.strip())
-        listajumbo, listacompres = cargar_listas()
-        listacompres.append(elemento)
-        guardar_listas(listajumbo, listacompres)
+        requests.post(f'{SUPABASE_URL}/rest/v1/compres', headers=HEADERS, json={'producto': elemento})
         session['mensaje'] = f'✅ Agregado a COMPRES 🟨: {elemento}'
     return redirect(url_for('index'))
 
-# ===== RUTAS EXISTENTES MODIFICADAS =====
-
-# Borrar elementos
 @app.route('/borrar', methods=['POST'])
 @login_required
 def borrar():
     lista = request.form.get('lista')
     elemento = request.form.get('elemento')
-    
+
     if not elemento:
         session['mensaje'] = '❌ Debes escribir un elemento para borrar'
         return redirect(url_for('index'))
-    
+
+    tabla = 'jumbo' if lista == 'jumbo' else 'compres'
+    nombre_tienda = 'JUMBO 🟥' if lista == 'jumbo' else 'COMPRES 🟨'
+
     listajumbo, listacompres = cargar_listas()
-    
-    if lista == 'jumbo':
-        encontrado = None
-        for item in listajumbo:
-            if normalizar_texto(item) == normalizar_texto(elemento):
-                encontrado = item
-                break
-        if encontrado:
-            listajumbo.remove(encontrado)
-            session['mensaje'] = f'✅ "{encontrado}" borrado de JUMBO 🟥'
-        else:
-            session['mensaje'] = f'❌ "{elemento}" no está en la lista de JUMBO'
-    
-    elif lista == 'compres':
-        encontrado = None
-        for item in listacompres:
-            if normalizar_texto(item) == normalizar_texto(elemento):
-                encontrado = item
-                break
-        if encontrado:
-            listacompres.remove(encontrado)
-            session['mensaje'] = f'✅ "{encontrado}" borrado de COMPRES 🟨'
-        else:
-            session['mensaje'] = f'❌ "{elemento}" no está en la lista de COMPRES'
+    lista_actual = listajumbo if lista == 'jumbo' else listacompres
+
+    encontrado = None
+    for item in lista_actual:
+        if normalizar_texto(item['producto']) == normalizar_texto(elemento):
+            encontrado = item
+            break
+
+    if encontrado:
+        requests.delete(f'{SUPABASE_URL}/rest/v1/{tabla}?id=eq.{encontrado["id"]}', headers=HEADERS)
+        session['mensaje'] = f'✅ "{encontrado["producto"]}" borrado de {nombre_tienda}'
     else:
-        session['mensaje'] = '❌ Error: No se seleccionó una lista válida'
-        return redirect(url_for('index'))
-    
-    guardar_listas(listajumbo, listacompres)
+        session['mensaje'] = f'❌ "{elemento}" no está en la lista'
+
     return redirect(url_for('index'))
 
-# Marcar como comprados
 @app.route('/comprar', methods=['POST'])
 @login_required
 def comprar():
     lista = request.form.get('lista')
     indices = request.form.getlist('indices')
-    
+
     if not indices:
         session['mensaje'] = '❌ No seleccionaste ningún producto'
         return redirect(url_for('index'))
-    
+
     listajumbo, listacompres = cargar_listas()
-    
-    if lista == 'jumbo':
-        indices_ordenados = sorted([int(i) for i in indices], reverse=True)
-        comprados = []
-        for idx in indices_ordenados:
-            if 0 <= idx < len(listajumbo):
-                comprados.append(listajumbo[idx])
-                listajumbo.pop(idx)
-        if comprados:
-            session['mensaje'] = f'✅ Comprados de JUMBO 🟥: {", ".join(comprados)}'
-    
-    elif lista == 'compres':
-        indices_ordenados = sorted([int(i) for i in indices], reverse=True)
-        comprados = []
-        for idx in indices_ordenados:
-            if 0 <= idx < len(listacompres):
-                comprados.append(listacompres[idx])
-                listacompres.pop(idx)
-        if comprados:
-            session['mensaje'] = f'✅ Comprados de COMPRES 🟨: {", ".join(comprados)}'
-    else:
-        session['mensaje'] = '❌ Error: No se seleccionó una lista válida'
-        return redirect(url_for('index'))
-    
-    guardar_listas(listajumbo, listacompres)
+    lista_actual = listajumbo if lista == 'jumbo' else listacompres
+    nombre_tienda = 'JUMBO 🟥' if lista == 'jumbo' else 'COMPRES 🟨'
+    tabla = 'jumbo' if lista == 'jumbo' else 'compres'
+
+    comprados = []
+    for idx in indices:
+        idx = int(idx)
+        if 0 <= idx < len(lista_actual):
+            item = lista_actual[idx]
+            requests.delete(f'{SUPABASE_URL}/rest/v1/{tabla}?id=eq.{item["id"]}', headers=HEADERS)
+            comprados.append(item['producto'])
+
+    if comprados:
+        session['mensaje'] = f'✅ Comprados de {nombre_tienda}: {", ".join(comprados)}'
+
     return redirect(url_for('index'))
 
-# Vaciar lista completa
 @app.route('/vaciar', methods=['POST'])
 @login_required
 def vaciar():
     lista = request.form.get('lista')
-    
-    listajumbo, listacompres = cargar_listas()
-    
-    if lista == 'jumbo':
-        listajumbo = []
-        session['mensaje'] = '🧹 Lista de JUMBO 🟥 vaciada'
-    elif lista == 'compres':
-        listacompres = []
-        session['mensaje'] = '🧹 Lista de COMPRES 🟨 vaciada'
-    else:
-        session['mensaje'] = '❌ Error: No se seleccionó una lista válida'
-        return redirect(url_for('index'))
-    
-    guardar_listas(listajumbo, listacompres)
+    tabla = 'jumbo' if lista == 'jumbo' else 'compres'
+    nombre_tienda = 'JUMBO 🟥' if lista == 'jumbo' else 'COMPRES 🟨'
+
+    requests.delete(f'{SUPABASE_URL}/rest/v1/{tabla}?id=gt.0', headers=HEADERS)
+    session['mensaje'] = f'🧹 Lista de {nombre_tienda} vaciada'
+
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
