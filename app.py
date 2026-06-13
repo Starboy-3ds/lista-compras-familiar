@@ -47,10 +47,9 @@ def capitalizar_texto(texto):
 def normalizar_texto(texto):
     return texto.lower().strip()
 
-# Cargar listas desde Supabase
 def cargar_listas():
-    r_jumbo = requests.get(f'{SUPABASE_URL}/rest/v1/jumbo?select=id,producto', headers=HEADERS)
-    r_compres = requests.get(f'{SUPABASE_URL}/rest/v1/compres?select=id,producto', headers=HEADERS)
+    r_jumbo = requests.get(f'{SUPABASE_URL}/rest/v1/Jumbo?select=id,producto', headers=HEADERS)
+    r_compres = requests.get(f'{SUPABASE_URL}/rest/v1/Compres?select=id,producto', headers=HEADERS)
     listajumbo = r_jumbo.json() if r_jumbo.status_code == 200 else []
     listacompres = r_compres.json() if r_compres.status_code == 200 else []
     return listajumbo, listacompres
@@ -89,7 +88,7 @@ def agregar_jumbo():
     elemento = request.form.get('elemento')
     if elemento:
         elemento = capitalizar_texto(elemento.strip())
-        requests.post(f'{SUPABASE_URL}/rest/v1/jumbo', headers=HEADERS, json={'producto': elemento})
+        requests.post(f'{SUPABASE_URL}/rest/v1/Jumbo', headers=HEADERS, json={'producto': elemento})
         session['mensaje'] = f'✅ Agregado a JUMBO 🟥: {elemento}'
     return redirect(url_for('index'))
 
@@ -99,7 +98,7 @@ def agregar_compres():
     elemento = request.form.get('elemento')
     if elemento:
         elemento = capitalizar_texto(elemento.strip())
-        requests.post(f'{SUPABASE_URL}/rest/v1/compres', headers=HEADERS, json={'producto': elemento})
+        requests.post(f'{SUPABASE_URL}/rest/v1/Compres', headers=HEADERS, json={'producto': elemento})
         session['mensaje'] = f'✅ Agregado a COMPRES 🟨: {elemento}'
     return redirect(url_for('index'))
 
@@ -113,7 +112,7 @@ def borrar():
         session['mensaje'] = '❌ Debes escribir un elemento para borrar'
         return redirect(url_for('index'))
 
-    tabla = 'jumbo' if lista == 'jumbo' else 'compres'
+    tabla = 'Jumbo' if lista == 'jumbo' else 'Compres'
     nombre_tienda = 'JUMBO 🟥' if lista == 'jumbo' else 'COMPRES 🟨'
 
     listajumbo, listacompres = cargar_listas()
@@ -146,7 +145,7 @@ def comprar():
     listajumbo, listacompres = cargar_listas()
     lista_actual = listajumbo if lista == 'jumbo' else listacompres
     nombre_tienda = 'JUMBO 🟥' if lista == 'jumbo' else 'COMPRES 🟨'
-    tabla = 'jumbo' if lista == 'jumbo' else 'compres'
+    tabla = 'Jumbo' if lista == 'jumbo' else 'Compres'
 
     comprados = []
     for idx in indices:
@@ -165,7 +164,7 @@ def comprar():
 @login_required
 def vaciar():
     lista = request.form.get('lista')
-    tabla = 'jumbo' if lista == 'jumbo' else 'compres'
+    tabla = 'Jumbo' if lista == 'jumbo' else 'Compres'
     nombre_tienda = 'JUMBO 🟥' if lista == 'jumbo' else 'COMPRES 🟨'
 
     requests.delete(f'{SUPABASE_URL}/rest/v1/{tabla}?id=gt.0', headers=HEADERS)
